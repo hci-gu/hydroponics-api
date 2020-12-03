@@ -7,6 +7,8 @@ const AWS = require('aws-sdk')
 const app = express()
 const cors = require('cors')
 const { Sequelize, Model, DataTypes } = require('sequelize')
+// const imageClipper = require('image-clipper')
+const fs = require('fs')
 
 const { BUCKET_NAME, REGION, KEY, SECRET, POSTGRES_DB } = process.env
 
@@ -20,9 +22,20 @@ Image.init(
     growthStart: DataTypes.DATE,
     lightHours: DataTypes.INTEGER,
     temperature: DataTypes.DOUBLE,
-    plant: DataTypes.STRING,
+    plantId: DataTypes.INTEGER,
   },
   { sequelize, modelName: 'user' }
+)
+
+// Plant
+class Plant extends Model {}
+Plant.init(
+  {
+    name: DataTypes.STRING,
+    lightHours: DataTypes.INTEGER,
+    temperature: DataTypes.DOUBLE,
+  },
+  { sequelize, modelName: 'plant' }
 )
 
 sequelize.sync()
@@ -71,6 +84,58 @@ app.post('/image', (req, res) => {
   })
 })
 
+app.post('/plant', async (req, res) => {
+  try {
+    const plant = await Plant.create(req.body)
+    res.send(plant)
+  } catch (err) {
+    res.send(err.message)
+  }
+})
+
+app.get('/plants', async (_, res) => {
+  const plants = await Plant.findAll()
+  res.send(plants)
+})
+app.put('/plant/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const plant = await Plant.findOne({ where: { id } })
+    Object.keys(req.body).forEach((key) => {
+      plant[key] = req.body[key]
+    })
+
+    await plant.save()
+  } catch (e) {
+    return res.send(e.message)
+  }
+
+  res.send(plant)
+})
+app.delete('/plant/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    const plant = await Plant.findOne({ where: { id } })
+    await plant.destroy()
+  } catch (e) {
+    return res.send(e.message)
+  }
+  res.sendStatus(200)
+})
+
 app.listen(3000)
 
 console.log('hello')
+
+// const test = async () => {
+//   const WIDTH = 2016
+//   const HEIGHT = 1512
+//   const imageWidth = Math.floor(WIDTH / 3)
+//   imageClipper('./hydroponics-test.png', function () {
+//     this.crop(0, 0, imageWidth, HEIGHT).toFile('./cropped.png', () => {
+//       console.log('saved!')
+//     })
+//   })
+// }
+
+// test()
