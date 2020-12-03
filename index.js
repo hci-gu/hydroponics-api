@@ -19,10 +19,6 @@ Image.init(
   {
     imageUrl: DataTypes.STRING,
     imageTaken: DataTypes.DATE,
-    growthStart: DataTypes.DATE,
-    lightHours: DataTypes.INTEGER,
-    temperature: DataTypes.DOUBLE,
-    plantId: DataTypes.INTEGER,
   },
   { sequelize, modelName: 'user' }
 )
@@ -34,6 +30,8 @@ Plant.init(
     name: DataTypes.STRING,
     lightHours: DataTypes.INTEGER,
     temperature: DataTypes.DOUBLE,
+    ph: DataTypes.DOUBLE,
+    growthStart: DataTypes.DATE,
   },
   { sequelize, modelName: 'plant' }
 )
@@ -84,7 +82,7 @@ app.post('/image', (req, res) => {
   })
 })
 
-app.post('/plant', async (req, res) => {
+app.post('/plants', async (req, res) => {
   try {
     const plant = await Plant.create(req.body)
     res.send(plant)
@@ -97,22 +95,20 @@ app.get('/plants', async (_, res) => {
   const plants = await Plant.findAll()
   res.send(plants)
 })
-app.put('/plant/:id', async (req, res) => {
+app.put('/plants/:id', async (req, res) => {
   const { id } = req.params
   try {
     const plant = await Plant.findOne({ where: { id } })
     Object.keys(req.body).forEach((key) => {
       plant[key] = req.body[key]
     })
-
     await plant.save()
+    res.send(plant)
   } catch (e) {
     return res.send(e.message)
   }
-
-  res.send(plant)
 })
-app.delete('/plant/:id', async (req, res) => {
+app.delete('/plants/:id', async (req, res) => {
   const { id } = req.params
   try {
     const plant = await Plant.findOne({ where: { id } })
