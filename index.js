@@ -56,7 +56,9 @@ Plant.init(
     lightHours: DataTypes.INTEGER,
     temperature: DataTypes.DOUBLE,
     ph: DataTypes.DOUBLE,
+    imagePosition: DataTypes.INTEGER,
     growthStart: DataTypes.DATE,
+    growthEnd: DataTypes.DATE,
     information: DataTypes.STRING,
   },
   { sequelize, modelName: 'plant' }
@@ -100,10 +102,6 @@ app.post('/image', (req, res) => {
       await Image.create({
         imageUrl: `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${fileName}`,
         imageTaken: new Date(now),
-        growthStart: new Date('2020-12-01'),
-        lightHours: 12,
-        temperature: 27.5,
-        plant: 'Sallad',
       })
       return res.sendStatus(200)
     } catch (saveErr) {
