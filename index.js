@@ -57,6 +57,7 @@ Plant.init(
     temperature: DataTypes.DOUBLE,
     ph: DataTypes.DOUBLE,
     growthStart: DataTypes.DATE,
+    information: DataTypes.STRING,
   },
   { sequelize, modelName: 'plant' }
 )
