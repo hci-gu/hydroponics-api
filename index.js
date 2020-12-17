@@ -10,9 +10,34 @@ const { Sequelize, Model, DataTypes } = require('sequelize')
 // const imageClipper = require('image-clipper')
 const fs = require('fs')
 
-const { BUCKET_NAME, REGION, KEY, SECRET, POSTGRES_DB } = process.env
+const { BUCKET_NAME, REGION, KEY, SECRET } = process.env
+const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB } = process.env
 
-const sequelize = new Sequelize(POSTGRES_DB ? POSTGRES_DB : 'sqlite::memory:')
+if (DB) {
+  console.log('connecting to', {
+    DB_HOST,
+    DB_PORT,
+    DB_USERNAME,
+    DB_PASSWORD,
+    DB,
+  })
+}
+const sequelize = DB
+  ? new Sequelize({
+      database: DB,
+      username: DB_USERNAME,
+      password: DB_PASSWORD,
+      host: DB_HOST,
+      port: DB_PORT,
+      dialect: 'postgres',
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      },
+    })
+  : new Sequelize('sqlite::memory')
 
 class Image extends Model {}
 Image.init(
@@ -70,15 +95,20 @@ app.post('/image', (req, res) => {
   }
   s3.putObject(params, async (err, data) => {
     console.log('response from s3', err, data)
-    await Image.create({
-      imageUrl: `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${fileName}`,
-      imageTaken: new Date(now),
-      growthStart: new Date('2020-12-01'),
-      lightHours: 12,
-      temperature: 27.5,
-      plant: 'Sallad',
-    })
-    res.sendStatus(200)
+    try {
+      await Image.create({
+        imageUrl: `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${fileName}`,
+        imageTaken: new Date(now),
+        growthStart: new Date('2020-12-01'),
+        lightHours: 12,
+        temperature: 27.5,
+        plant: 'Sallad',
+      })
+      return res.sendStatus(200)
+    } catch (saveErr) {
+      console.error('error saving image', saveErr.message)
+      res.send(e.message)
+    }
   })
 })
 
@@ -120,8 +150,6 @@ app.delete('/plants/:id', async (req, res) => {
 })
 
 app.listen(3000)
-
-console.log('hello')
 
 // const test = async () => {
 //   const WIDTH = 2016
