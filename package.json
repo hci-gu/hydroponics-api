@@ -18,6 +18,7 @@
     "express": "^4.17.1",
     "image-clipper": "^0.4.4",
     "moment": "^2.29.1",
+    "pg": "^8.5.1",
     "sequelize": "^6.3.5",
     "sqlite3": "^5.0.0"
   }
