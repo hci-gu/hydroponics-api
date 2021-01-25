@@ -84,7 +84,7 @@ app.get('/images', async (req, res) => {
 })
 
 app.post('/image', (req, res) => {
-  console.log('received image!')
+  console.log('received image!', req.body)
   const now = moment().format('YYYY-MM-DDTHH:mm')
   const fileName = `${now}.png`
   console.log(fileName)
@@ -126,6 +126,7 @@ app.get('/plants', async (_, res) => {
 })
 app.put('/plants/:id', async (req, res) => {
   const { id } = req.params
+  console.log('PUT', id, req.body)
   try {
     const plant = await Plant.findOne({ where: { id } })
     Object.keys(req.body).forEach((key) => {
